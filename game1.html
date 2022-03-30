@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<!-- membuat html -->
+<html>
+<!-- mulai dengan membuat kepalanya -->
+<head>
+    <!-- pemberian instruksi kepada browser untuk menerjemahkan karakter dalam HTML sebagai UTF-8 -->
+    <meta charset="utf-8" />
+    <!-- membuat judul pada bagian atas(tab) di web -->
+    <title>Game dengan Javascript dan HTML</title>
+    <!-- mengatur style canvas atau wadah dari game -->
+    <style>
+        * { padding: 0; margin: 0; }
+        canvas { background: #B2F0FF; display: block; margin: 0 auto; }
+    </style>
+</head>
+<!-- mulai masuk pada bagian badan atau inti -->
+<body>
+    <!-- membuat elemen canvas sebagai wadah untuk menggambar kode game dengan ukuran : lebar 500 dan tinggi 350 -->
+    <canvas id="myCanvas" width="500" height="350"></canvas>
+    <!-- masuk pada bagian JavaScript -->
+    <script>
+        //membuat variabel canvas untuk memilih elemen HTML dengan id "myCanvas"
+        var canvas = document.getElementById('myCanvas');
+        // membuat variabel context sebagai objek untuk menggambar di canvas (pensil/kuas)
+        var context = canvas.getContext('2d');
+
+        //membuat variabel speed untuk mengatur kecepatan
+        var speed = 10;
+        gameSpeed = 100;
+
+        //membuat variabel bird atau burung untuk mengatur letak koordinat burung 
+        var bird = {
+            //mendefinisikan koordinat x sebagai lebar canvas dibagi 2
+            x: canvas.width / 2,
+            //mendefinisikan koordinat y sebagai tinggi canvas dibagi 2
+            y: canvas.height / 2,
+            vx: 0,
+            vy: 1
+        };
+
+        //membuat variabel pip untuk menampung pipa dalam bentuk array
+        var pip = [];
+
+        //membuat variabel gravity untuk mengatur gravitasi
+        var gravity = 0.2;
+        //membuat variabel bounce untuk mengatur burung memantul
+        var bounce = 4;
+        //membuat variabel distance untuk mengatur jarak antar pipa
+        var distance = 120;
+        //membuat variabel dir utk mengatur arah elemen bergerak, yaitu ke kiri
+        var dir = 'left';
+
+        //membuat aksi pada sebuah elemen ketika user/player mengisi sebuah nilai, dalam hal ini player yang menekan tombol di keyboardnya
+        document.onkeydown = function (e) {
+            if (!e) {
+                e = window.e;
+            }
+            //kode untuk browser tertentu, properti keyCode mengembalikan kode karakter unicode kunci yang memicu onkeypress
+            var code = e.keyCode;
+            if (e.charCode && codee == 0) {
+                //charCode untuk mengambil nilai Unicode untuk karakter pada posisi tertentu dalam string
+                code = e.charCode;
+            }
+            //mengatur penekanan tombol keyboard
+            switch (code) {
+                case 37://left
+                //jika tombol yang ditekan bukan kanan, maka berarti tombol kiri
+                    if (dir != 'right')
+                        dir = 'left';
+                    break;
+                case 38:
+                //jika tombol yang ditekan bukan bawah, maka berarti tombol atas
+                    if (dir != 'down')
+                        dir = 'up';
+                    break;
+                case 39:
+                //jika tombol yang ditekan bukan kiri, maka berarti tombol kanan
+                    if (dir != 'left')
+                        dir = 'right';
+                    break;
+                case 40:
+                //jika tombol yang ditekan bukan atas, maka berarti tombol bawah
+                    if (dir != 'up')
+                        dir = 'down';
+                    break;
+
+            }
+        }
+
+        //membuat variabel b dengan nilai 0.8
+        var b = 0.8;
+        //function untuk menggambar style burung dan geraknya
+        function makeBird() {
+            //impor gambar burung dari direktori yang sama dengan penyimpanan game1.html ini dengan nama "burung.png"
+            var image = new Image();
+            image.src="burung.png";
+            //menaruh burung yang sudah diimpor ke canvas, serta mengatur panjang dan lebarnya dengan ukuran sama, yaitu 40
+            context.drawImage(image, bird.x, bird.y,40,40);
+
+            bird.y += bird.vy;
+            bird.vy += gravity;
+            //jika keyboard ditekan ke atas, maka pantulan burung dikurangi atau dibuat melayang
+            if (dir == 'up') {
+                bird.vy = -bounce;
+                dir = '';
+            }
+
+            if (bird.y + 10 >= canvas.height) {
+                // dir = 'up';
+            }
+        }
+
+        //function untuk menggambar style pipa
+        function makePip() {
+
+            for (p of pip) {
+                //menggambar pipa atas
+                context.beginPath(); //membuat garis baru atau memulai untuk menggambar
+                //menggambar pipa dengan menentukan koordinat, serta ukuran lebar dan tingginya
+                context.rect(p.top.x, p.top.y, p.top.width, p.top.height); 
+                //menentukan warna pipa
+                context.fillStyle = 'darkgrey';
+                //memasukkan warna pada pipa agar tidak transparan
+                context.fill();
+                context.closePath(); //mengembalikan ke titik awal
+
+                //mendefinisikan bahwa letak puncak pipa bawah = tinggi pipa atas ditambah dengan jarak
+                p.bottom.y = p.top.height + distance;
+                //sehingga tinggi dari pipa bawah, yaitu tinggi canvas dikurangi letak titik p.bottom.y
+                p.bottom.height = (canvas.height - p.bottom.y);
+
+                //menggambar pipa bawah
+                context.beginPath(); //membuat garis baru atau memulai untuk menggambar
+                //menggambar pipa dengan menentukan koordinat, serta ukuran lebar dan tingginya
+                context.rect(p.bottom.x, p.bottom.y, p.bottom.width, p.bottom.height);
+                //menentukan warna pipa
+                context.fillStyle = 'cadetblue';
+                //memasukkan warna pada pipa agar tidak transparan
+                context.fill();
+                context.closePath();//mengembalikan ke titik awal
+
+                //mengatur jarak antar pipa sampingnya dengan mengatur koordinat x nya, baik atas maupun bawah sama-sama diberi letak 1
+                p.bottom.x -= 1;
+                p.top.x -= 1;
+
+                if (p.top.x < -10) {
+                    pip.shift();
+                }
+
+                /*perhitungan skor muncul jika burung mengenai pipa, baik bawah maupun atas, 
+                atau dapat juga ketika burung melebihi tinggi canvas (jatuh)*/
+                if (isCollideB(bird, p.bottom) || isCollideT(bird, p.top) || bird.y + 10 >= canvas.height) {
+                    alert('Your Score : ' + score);
+                    window.location.reload();
+                }
+
+                if (score % 10 == 0) {
+                    console.log(distance);
+                    score += 1;
+                    distance -= 5;
+                }
+
+            }
+        }
+
+
+        //memeriksa apakah dua tabrakan, yaitu antara pipa bawah dan burung bertabrakan satu sama lain
+        function isCollideB(b, p) {
+            return (
+                (b.x + 10 > p.x) &&
+                (b.x < p.x + 10) &&
+                (b.y > p.y || b.y + 10 > p.y)
+            );
+        }
+
+        //memeriksa apakah dua tabrakan, yaitu antara pipa atas dan burung bertabrakan satu sama lain
+        function isCollideT(b, p) {
+            return (
+                (b.x + 10 > p.x) &&
+                (b.x < p.x + 10) &&
+                (b.y < p.y + p.height)
+            );
+        }
+
+        //fungsi random : mengembalikan angka acak antara min dan max
+        function rnd(min, max) {
+            var r = Math.round(Math.random() * (max - min) + min);
+            return (r - r % speed);
+        }
+
+        //membuat variabel score dan frame dengan nilai 0
+        var score = 0;
+        var frame = 0;
+        //fungsi perulangan
+        (function loop() {
+            //reqAnimationFrame digunakan untuk meminta atau memulai suatu animasi dalam bingkai fungsi tersebut
+            requestAnimationFrame(function () {
+                //menghapus gambar pada canvas
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                if (frame % gameSpeed == 0) {
+                    //memasukkan pipa dalam array yang sudah didefinisikan sebelumnya
+                    pip.push({
+                        //pipa atas
+                        top: {
+                            x: canvas.width,
+                            y: 0,
+                            height: rnd(70, 140),
+                            width: 15,
+                        },
+                        //pipa bawah
+                        bottom: {
+                            x: canvas.width,
+                            y: 0,
+                            height: rnd(100, 160),
+                            width: 15,
+                        }
+                    });
+                    //penambahan nilai skor
+                    score++;
+                }
+                //function makeBird() dipanggil
+                makeBird();
+                //function makePip() dipanggil
+                makePip();
+                //penambahan nilai frame
+                frame++;
+                //perulangan terus menerus dari function loop() selama burung tidak menabrak pipa atau jatuh ke bawah
+                loop();
+            })
+        })();
+    //penutupan JavaScript
+    </script>
+<!-- mengakhiri bagian body -->
+</body>
+<!-- mengakhiri HTML -->
+</html>
